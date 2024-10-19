@@ -46,35 +46,33 @@ jobs:
         username: ${{ secrets.REMOTE_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          sudo mkdir -p /var
-          sudo chown -R ubuntu:ubuntu /var
-          cd /var
-          sudo apt update && sudo apt install -y python3-pip git
-
-          # Install Node Version Manager (NVM)
-          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-          nvm install --lts
-          nvm use --lts
+          sudo mkdir -p /var/deploy
+          cd /var/deploy
 
           # Stop existing services if running
           sudo systemctl stop flask.service || true
           sudo systemctl stop react-frontend.service || true
 
-          # Clone the repository
+          # Clone or pull the repository
           if [ -d "deploy-api" ]; then
-            echo "Repository already exists. Deleting the existing directory."
-            sudo rm -rf deploy-api 
+            echo "Updating the existing repository."
+            cd deploy-api
+            sudo git pull origin main
+          else
+            echo "Cloning the repository."
+            sudo git clone https://github.com/manish92596/deploy-api.git
           fi
-          sudo git clone https://github.com/manish92596/deploy-api.git deploy
-          sudo chown -R ubuntu:ubuntu /var/deploy/deploy-api
 
-          # Update React baseURL
+          # Change ownership and update React baseURL
+          sudo chown -R ubuntu:ubuntu /var/deploy/deploy-api
           cd /var/deploy/deploy-api/react-frontend/src/components
-          sudo chown ubuntu:ubuntu baseURL.js
-          sed -i "s|const BASE_URL = .*;|const BASE_URL = \"http://${{ secrets.REMOTE_HOST }}:5001\";|g" baseURL.js
+
+          # Ensure the baseURL.js exists before modifying it
+          if [ -f baseURL.js ]; then
+            sed -i "s|const BASE_URL = .*;|const BASE_URL = \"http://${{ secrets.REMOTE_HOST }}:5001\";|g" baseURL.js
+          else
+            echo "baseURL.js does not exist. Skipping baseURL update."
+          fi
 
     - name: Deploy Flask Backend to AWS EC2
       uses: appleboy/ssh-action@master
@@ -83,7 +81,7 @@ jobs:
         username: ${{ secrets.REMOTE_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          cd /var/www/html/deploy/deploy-api/flask-backend
+          cd /var/deploy/deploy-api/flask-backend
           sudo chown -R ubuntu:ubuntu /var/deploy/deploy-api/flask-backend
           sudo pip install -r requirements.txt
           sudo systemctl start flask.service
