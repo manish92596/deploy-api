@@ -46,9 +46,9 @@ jobs:
         username: ${{ secrets.REMOTE_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          sudo mkdir -p /var/www/html
-          sudo chown -R ec2-user:ec2-user /var/www/html
-          cd /var/www/html
+          sudo mkdir -p /var
+          sudo chown -R ec2-user:ec2-user /var
+          cd /var
           sudo yum install -y python3-pip git
 
           # Install Node Version Manager (NVM)
@@ -70,10 +70,10 @@ jobs:
             sudo rm -rf deploy 
           fi
           sudo git clone https://github.com/manish92596/deploy-api.git deploy
-          sudo chown -R ec2-user:ec2-user /var/www/html/deploy
+          sudo chown -R ec2-user:ec2-user /var/deploy
 
           # Update React baseURL
-          cd /var/www/html/deploy/react-frontend/src/components
+          cd /var/deploy/react-frontend/src/components
           sudo chown ec2-user:ec2-user baseURL.js
           sed -i "s|const BASE_URL = .*;|const BASE_URL = \"http://${{ secrets.REMOTE_HOST }}:5001\";|g" baseURL.js
 
@@ -85,7 +85,7 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           cd /var/www/html/deploy/flask-backend
-          sudo chown -R ec2-user:ec2-user /var/www/html/deploy/flask-backend
+          sudo chown -R ec2-user:ec2-user /var/deploy/flask-backend
           sudo pip install -r requirements.txt
           sudo systemctl start flask.service
 
@@ -96,8 +96,8 @@ jobs:
         username: ${{ secrets.REMOTE_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          cd /var/www/html/deploy/react-frontend
-          sudo chown -R ec2-user:ec2-user /var/www/html/deploy/react-frontend
+          cd /var/deploy/react-frontend
+          sudo chown -R ec2-user:ec2-user /var/deploy/react-frontend
           npm install 
           sudo systemctl start react-frontend.service
 
