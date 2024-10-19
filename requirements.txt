@@ -1,0 +1,7 @@
+Flask
+Flask-Cors
+mysql-connector-python
+python-dotenv
+flask_jwt_extended
+bcrypt
+requests
