@@ -47,9 +47,9 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           sudo mkdir -p /var
-          sudo chown -R ec2-user:ec2-user /var
+          sudo chown -R ubuntu:ubuntu /var
           cd /var
-          sudo yum install -y python3-pip git
+          sudo apt update && sudo apt install -y python3-pip git
 
           # Install Node Version Manager (NVM)
           curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
@@ -69,11 +69,11 @@ jobs:
             sudo rm -rf deploy-api 
           fi
           sudo git clone https://github.com/manish92596/deploy-api.git deploy
-          sudo chown -R ec2-user:ec2-user /var/deploy/deploy-api
+          sudo chown -R ubuntu:ubuntu /var/deploy/deploy-api
 
           # Update React baseURL
           cd /var/deploy/deploy-api/react-frontend/src/components
-          sudo chown ec2-user:ec2-user baseURL.js
+          sudo chown ubuntu:ubuntu baseURL.js
           sed -i "s|const BASE_URL = .*;|const BASE_URL = \"http://${{ secrets.REMOTE_HOST }}:5001\";|g" baseURL.js
 
     - name: Deploy Flask Backend to AWS EC2
@@ -84,7 +84,7 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           cd /var/www/html/deploy/deploy-api/flask-backend
-          sudo chown -R ec2-user:ec2-user /var/deploy/deploy-api/flask-backend
+          sudo chown -R ubuntu:ubuntu /var/deploy/deploy-api/flask-backend
           sudo pip install -r requirements.txt
           sudo systemctl start flask.service
 
@@ -96,7 +96,7 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           cd /var/deploy/deploy-api/react-frontend
-          sudo chown -R ec2-user:ec2-user /var/deploy/deploy-api/react-frontend
+          sudo chown -R ubuntu:ubuntu /var/deploy/deploy-api/react-frontend
           npm install 
           sudo systemctl start react-frontend.service
 
