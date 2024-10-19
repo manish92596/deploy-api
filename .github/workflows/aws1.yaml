@@ -62,18 +62,17 @@ jobs:
           # Stop existing services if running
           sudo systemctl stop flask.service || true
           sudo systemctl stop react-frontend.service || true
-          sudo systemctl stop scanner.service || true
 
           # Clone the repository
-          if [ -d "deploy" ]; then
+          if [ -d "deploy-api" ]; then
             echo "Repository already exists. Deleting the existing directory."
-            sudo rm -rf deploy 
+            sudo rm -rf deploy-api 
           fi
           sudo git clone https://github.com/manish92596/deploy-api.git deploy
-          sudo chown -R ec2-user:ec2-user /var/deploy
+          sudo chown -R ec2-user:ec2-user /var/deploy/deploy-api
 
           # Update React baseURL
-          cd /var/deploy/react-frontend/src/components
+          cd /var/deploy/deploy-api/react-frontend/src/components
           sudo chown ec2-user:ec2-user baseURL.js
           sed -i "s|const BASE_URL = .*;|const BASE_URL = \"http://${{ secrets.REMOTE_HOST }}:5001\";|g" baseURL.js
 
@@ -84,8 +83,8 @@ jobs:
         username: ${{ secrets.REMOTE_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          cd /var/www/html/deploy/flask-backend
-          sudo chown -R ec2-user:ec2-user /var/deploy/flask-backend
+          cd /var/www/html/deploy/deploy-api/flask-backend
+          sudo chown -R ec2-user:ec2-user /var/deploy/deploy-api/flask-backend
           sudo pip install -r requirements.txt
           sudo systemctl start flask.service
 
@@ -96,8 +95,8 @@ jobs:
         username: ${{ secrets.REMOTE_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          cd /var/deploy/react-frontend
-          sudo chown -R ec2-user:ec2-user /var/deploy/react-frontend
+          cd /var/deploy/deploy-api/react-frontend
+          sudo chown -R ec2-user:ec2-user /var/deploy/deploy-api/react-frontend
           npm install 
           sudo systemctl start react-frontend.service
 
