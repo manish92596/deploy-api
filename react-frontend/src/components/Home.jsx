@@ -6,7 +6,8 @@ import { faShieldHalved } from '@fortawesome/free-solid-svg-icons';
 
 function Home() {
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(true);
+  // const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     // Update the login state based on the presence of a token in local storage
@@ -15,11 +16,11 @@ function Home() {
   }, []);
 
   const handleNavigation = (path) => {
-    if (!isLoggedIn) {
-      navigate('/login');
-    } else {
+    // if (!isLoggedIn) {
+    //   navigate('/login');
+    // } else {
       navigate(path);
-    }
+    // }
   };
 
   const handleLogout = () => {

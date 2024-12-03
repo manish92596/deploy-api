@@ -30,10 +30,10 @@ function Vulnerabilities() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('token')
-    if (!token) {
-      navigate('/login')
-    }
+    // const token = localStorage.getItem('token')
+    // if (!token) {
+    //   navigate('/login')
+    // }
     axios
       .get(`${BASE_URL}/api/vulnerabilities`)
       .then((response) => {

@@ -8,7 +8,7 @@ import time
 
 from dotenv import load_dotenv
 import os
-# Load environment variables from .env  
+ 
 load_dotenv()
 
 app = Flask(__name__)
@@ -23,8 +23,7 @@ def get_db_connection():
         user=os.getenv("DB_USER"),
         password=os.getenv("DB_PASSWORD"),
         database=os.getenv("DB_NAME"),
-        port=int(os.getenv("DB_PORT")),
-        ssl_mode=os.getenv("DB_SSL_MODE")
+        port=int(os.getenv("DB_PORT"))
     )
 
 # def verifyToken():
@@ -58,7 +57,7 @@ def login():
     else:
         return jsonify({"msg": "Bad username or password"}), 401
 
-# Existing routes
+
 @app.route('/api/routes', methods=['GET'])
 def get_routes():
     """Fetch API routes from the database."""
@@ -106,7 +105,7 @@ def get_vulnerability_details(path):
     route_vulnerabilities = {vuln['vulnerability_type']: path for vuln in vulnerabilities}
     return jsonify(route_vulnerabilities)
 
-# New routes
+
 @app.route('/api/total_apis', methods=['GET'])
 def get_total_apis():
     """Fetch total number of APIs from the database."""
@@ -164,7 +163,7 @@ def get_vulnerabilities_timeline():
     cursor = conn.cursor()
     cursor.execute("SELECT id, vulnerabilities FROM live_graph ORDER BY id DESC LIMIT 15")
     timeline_data = cursor.fetchall()
-    timeline_data.reverse()  # Reverse to maintain chronological order
+    timeline_data.reverse()  
     cursor.close()
     conn.close()
     return jsonify(timeline_data)
@@ -175,7 +174,7 @@ def get_code_score():
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # Fetch severity scores and count of vulnerabilities
+ 
     cursor.execute("""
         SELECT vs.severity_score, COUNT(*) AS count
         FROM vulnerabilities v
@@ -184,14 +183,14 @@ def get_code_score():
     """)    
     vulnerabilities = cursor.fetchall()
 
-    # Calculate the total impact of vulnerabilities
+ 
     total_impact = sum(score * count for score, count in vulnerabilities)
 
-    # Fetch total number of APIs
+  
     cursor.execute("SELECT COUNT(*) FROM api_routes")
     total_apis = cursor.fetchone()[0]
 
-    # Calculate code score
+   
     base_score = 100
     score_per_api = 10
     raw_score = score_per_api * total_apis - total_impact
@@ -202,17 +201,17 @@ def get_code_score():
 
     # return jsonify(formatted_score)
 
-    # Calculate normalized impact (assuming max score is 100)
+    
     if total_apis > 0:
         normalized_impact = (total_impact / total_apis) * 10
     else:
         normalized_impact = 0
 
-    # Calculate final security score
+    
     base_score = 100
     code_score = max(0, base_score - normalized_impact)
 
-    # Format the score to two decimal places
+   
     code_score = f"{code_score:.2f}"
 
     return jsonify(code_score)
@@ -220,26 +219,26 @@ def get_code_score():
 
 def insert_vulnerability_count():
     """Periodically check and update the total number of vulnerabilities in the live_graph table only if the count has changed."""
-    last_vulnerability_count = None  # Initialize the last recorded count
+    last_vulnerability_count = None 
 
     while True:
         conn = get_db_connection()
         cursor = conn.cursor()
         
-        # Get the current total number of vulnerabilities
+        
         cursor.execute("SELECT COUNT(*) FROM vulnerabilities")
         current_vulnerability_count = cursor.fetchone()[0]
         print(f"Current vulnerability count: {current_vulnerability_count}")
 
-        # Check if the current count is different from the last recorded count
+       
         if last_vulnerability_count is None or current_vulnerability_count != last_vulnerability_count:
             print(f"Updating live graph: New count is {current_vulnerability_count}")
             
-            # Update the live_graph table with the new count
+            
             cursor.execute("INSERT INTO live_graph (vulnerabilities) VALUES (%s)", (current_vulnerability_count,))
             conn.commit()
             
-            # Update the last recorded count
+        
             last_vulnerability_count = current_vulnerability_count
         else:
             print("No change in vulnerability count; not updating live graph.")
@@ -247,7 +246,7 @@ def insert_vulnerability_count():
         cursor.close()
         conn.close()
 
-        # Sleep for a specified interval before checking again
+       
         time.sleep(5)
 
 @app.route('/api/donought_chart', methods=['GET'])
@@ -256,7 +255,7 @@ def get_donought_chart():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # SQL query to count the number of APIs affected by vulnerabilities at each severity level
+   
     cursor.execute("""
         SELECT vs.severity_level, vs.severity_score, COUNT(v.route_name) AS count
         FROM vulnerabilities v
@@ -274,14 +273,14 @@ def get_donought_chart():
     cursor.close()
     conn.close()
 
-    # Organize the data into a dictionary for the response
+    
     severity_counts = {item['severity_level']: item['count'] for item in data}
     return jsonify(severity_counts)
 
 
-# Run the Flask app
+
 if __name__ == '__main__':
-    # Start the thread to insert vulnerability count into live_graph periodically
+    
     threading.Thread(target=insert_vulnerability_count, daemon=True).start()
 
-    app.run(debug=True, host='0.0.0.0', port=5001)  # Set debug to False in a production environment
+    app.run(debug=True, host='0.0.0.0', port=5001)  
