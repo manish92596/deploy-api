@@ -1,2 +1,2 @@
-const BASE_URL = "http://localhost:5001";
+const BASE_URL = "https://deploy-nzrkb38n3-manish92596s-projects.vercel.app/";
 export default BASE_URL;
