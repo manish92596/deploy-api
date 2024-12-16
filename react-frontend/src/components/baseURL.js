@@ -1,2 +1,2 @@
-const BASE_URL = "https://deploy-nzrkb38n3-manish92596s-projects.vercel.app/";
+const BASE_URL = "https://deploy-api-49dn.onrender.com/";
 export default BASE_URL;
